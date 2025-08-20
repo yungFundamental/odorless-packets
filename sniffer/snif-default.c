@@ -6,6 +6,8 @@
 *
 * Simple single packet capture program
 *****************************************************/
+#include <string.h>
+#include <pcap/pcap.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pcap.h>
@@ -25,17 +27,26 @@ int main(int argc, char **argv)
     const u_char *packet;
     struct pcap_pkthdr hdr;     /* pcap.h */
     struct ether_header *eptr;  /* net/ethernet.h */
+    pcap_if_t *all_devices;
+    pcap_if_t *dev_i;
 
     u_char *ptr; /* printing out hardware header info */
 
-    /* grab a device to peak into... */
-    dev = pcap_lookupdev(errbuf);
 
-    if(dev == NULL)
+    if(pcap_findalldevs(&all_devices, errbuf))
     {
         printf("%s\n",errbuf);
         exit(1);
     }
+
+    // Find loopback
+    for (dev_i = all_devices; dev_i && strcmp(dev_i->name, "lo"); dev_i = dev_i->next);
+    if (!dev_i)
+    {
+      fprintf(stderr, "Loopback device not found!");
+      exit(1);
+    }
+    dev = dev_i->name;
 
     printf("DEV: %s\n",dev);
 
@@ -128,6 +139,7 @@ int main(int argc, char **argv)
     }while(--i>0);
     printf("\n");
 
+    pcap_freealldevs(all_devices);
     return 0;
 }
 
