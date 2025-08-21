@@ -43,12 +43,13 @@ int main(int argc, char **argv)
     for (dev_i = all_devices; dev_i && strcmp(dev_i->name, "lo"); dev_i = dev_i->next);
     if (!dev_i)
     {
-      fprintf(stderr, "Loopback device not found!");
+      fprintf(stderr, "Loopback device not found!\n");
       exit(1);
     }
     dev = dev_i->name;
 
     printf("DEV: %s\n",dev);
+    printf("Description: %s\n", dev_i->description);
 
     /* open the device for sniffing.
 
@@ -69,7 +70,7 @@ int main(int argc, char **argv)
        on before you set your card in promiscuous mode or you could get
        yourself in serious doo doo!!! (also need to be root to run in
        promisuous mode)                                               */
-    descr = pcap_open_live(dev,BUFSIZ,0,-1,errbuf);
+    descr = pcap_open_live(dev,BUFSIZ,0,2000,errbuf);
 
     if(descr == NULL)
     {
