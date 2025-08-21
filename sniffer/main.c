@@ -1,18 +1,9 @@
-/***************************************************
-* file:     testpcap1.c
-* Date:     Thu Mar 08 17:14:36 MST 2001 
-* Author:   Martin Casado
-* Location: LAX Airport (woof!) 
-*
-* Simple single packet capture program
-*****************************************************/
 #include <string.h>
 #include <pcap/pcap.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pcap.h>
 #include <time.h>
-#include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -70,7 +61,7 @@ int main(int argc, char **argv)
        on before you set your card in promiscuous mode or you could get
        yourself in serious doo doo!!! (also need to be root to run in
        promisuous mode)                                               */
-    descr = pcap_open_live(dev,BUFSIZ,0,2000,errbuf);
+    descr = pcap_open_live(dev,BUFSIZ, 0, 2000, errbuf);
 
     if(descr == NULL)
     {
@@ -87,7 +78,7 @@ int main(int argc, char **argv)
     packet = pcap_next(descr,&hdr);
 
     if(packet == NULL)
-    {/* dinna work *sob* */
+    {
         printf("Didn't grab packet\n");
         exit(1);
     }
@@ -123,7 +114,6 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    /* THANK YOU RICHARD STEVENS!!! */
     ptr = eptr->ether_dhost;
     i = ETHER_ADDR_LEN;
     printf(" Destination Address:  ");
@@ -140,6 +130,7 @@ int main(int argc, char **argv)
     }while(--i>0);
     printf("\n");
 
+    pcap_close(descr);
     pcap_freealldevs(all_devices);
     return 0;
 }
