@@ -9,6 +9,52 @@
 #include <arpa/inet.h>
 #include <netinet/if_ether.h> /* includes net/ethernet.h */
 
+void parse_ethernet_packet(const u_char *packet, struct pcap_pkthdr *hdr)
+{
+    int i;
+    struct ether_header *eptr;  /* net/ethernet.h */
+    u_char *ptr; /* printing out hardware header info */
+
+    printf("Grabbed packet of length %d\n",hdr->len);
+    printf("Recieved at ..... %s\n",ctime((const time_t*)&hdr->ts.tv_sec)); 
+    printf("Ethernet address length is %d\n",ETHER_HDR_LEN);
+
+    /* lets start with the ether header... */
+    eptr = (struct ether_header *) packet;
+
+    /* check to see if we have an ip packet */
+    if (ntohs (eptr->ether_type) == ETHERTYPE_IP)
+    {
+        printf("Ethernet type hex:%x dec:%d is an IP packet\n",
+                ntohs(eptr->ether_type),
+                ntohs(eptr->ether_type));
+    }else  if (ntohs (eptr->ether_type) == ETHERTYPE_ARP)
+    {
+        printf("Ethernet type hex:%x dec:%d is an ARP packet\n",
+                ntohs(eptr->ether_type),
+                ntohs(eptr->ether_type));
+    }else {
+        printf("Ethernet type %x not IP", ntohs(eptr->ether_type));
+        exit(1);
+    }
+
+    ptr = eptr->ether_dhost;
+    i = ETHER_ADDR_LEN;
+    printf(" Destination Address:  ");
+    do{
+        printf("%s%x",(i == ETHER_ADDR_LEN) ? " " : ":",*ptr++);
+    }while(--i>0);
+    printf("\n");
+
+    ptr = eptr->ether_shost;
+    i = ETHER_ADDR_LEN;
+    printf(" Source Address:  ");
+    do{
+        printf("%s%x",(i == ETHER_ADDR_LEN) ? " " : ":",*ptr++);
+    }while(--i>0);
+    printf("\n");
+}
+
 int main(int argc, char **argv)
 {
     int i;
@@ -17,11 +63,9 @@ int main(int argc, char **argv)
     pcap_t* descr;
     const u_char *packet;
     struct pcap_pkthdr hdr;     /* pcap.h */
-    struct ether_header *eptr;  /* net/ethernet.h */
     pcap_if_t *all_devices;
     pcap_if_t *dev_i;
 
-    u_char *ptr; /* printing out hardware header info */
 
 
     if(pcap_findalldevs(&all_devices, errbuf))
@@ -83,52 +127,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    /*  
-        struct pcap_pkthdr {
-        struct timeval ts;    time stamp 
-        bpf_u_int32 caplen;   length of portion present 
-        bpf_u_int32;          lebgth this packet (off wire) 
-        }
-     */
-
-    printf("Grabbed packet of length %d\n",hdr.len);
-    printf("Recieved at ..... %s\n",ctime((const time_t*)&hdr.ts.tv_sec)); 
-    printf("Ethernet address length is %d\n",ETHER_HDR_LEN);
-
-    /* lets start with the ether header... */
-    eptr = (struct ether_header *) packet;
-
-    /* check to see if we have an ip packet */
-    if (ntohs (eptr->ether_type) == ETHERTYPE_IP)
-    {
-        printf("Ethernet type hex:%x dec:%d is an IP packet\n",
-                ntohs(eptr->ether_type),
-                ntohs(eptr->ether_type));
-    }else  if (ntohs (eptr->ether_type) == ETHERTYPE_ARP)
-    {
-        printf("Ethernet type hex:%x dec:%d is an ARP packet\n",
-                ntohs(eptr->ether_type),
-                ntohs(eptr->ether_type));
-    }else {
-        printf("Ethernet type %x not IP", ntohs(eptr->ether_type));
-        exit(1);
-    }
-
-    ptr = eptr->ether_dhost;
-    i = ETHER_ADDR_LEN;
-    printf(" Destination Address:  ");
-    do{
-        printf("%s%x",(i == ETHER_ADDR_LEN) ? " " : ":",*ptr++);
-    }while(--i>0);
-    printf("\n");
-
-    ptr = eptr->ether_shost;
-    i = ETHER_ADDR_LEN;
-    printf(" Source Address:  ");
-    do{
-        printf("%s%x",(i == ETHER_ADDR_LEN) ? " " : ":",*ptr++);
-    }while(--i>0);
-    printf("\n");
+    parse_ethernet_packet(packet, &hdr);
 
     pcap_close(descr);
     pcap_freealldevs(all_devices);
