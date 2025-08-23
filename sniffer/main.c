@@ -1,3 +1,4 @@
+#include <net/ethernet.h>
 #include <string.h>
 #include <pcap/pcap.h>
 #include <stdio.h>
@@ -6,8 +7,29 @@
 #include <time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <netinet/if_ether.h> /* includes net/ethernet.h */
+
+void parse_ip_packet(const u_char *packet)
+{
+    struct in_addr src, dst;
+    struct ip *ip_hdr = (struct ip *)(packet + sizeof(struct ether_header));
+
+    src.s_addr = ip_hdr->ip_src.s_addr;
+    dst.s_addr = ip_hdr->ip_dst.s_addr;
+
+    printf("\t\tFrom: %s\n", inet_ntoa(src));
+    printf("\t\tTo: %s\n", inet_ntoa(dst));
+    printf("\tVersion: %d\n", (unsigned int)ip_hdr->ip_v);
+    printf("\tHeader Length: %d bytes\n",((unsigned int)(ip_hdr->ip_hl))*4);
+    printf("\tType of Service: %d\n", (unsigned int)ip_hdr->ip_tos);
+    printf("\tTotal Length: %d  bytes\n", ntohs(ip_hdr->ip_len));
+    printf("\tIdentification: %d\n", ntohs(ip_hdr->ip_id));
+    printf("\tTime to live: %d\n", (unsigned int)ip_hdr->ip_ttl);
+    printf("\tProtocol: %d\n", (unsigned int)ip_hdr->ip_p);
+    printf("\tChecksum: %d\n", ntohs(ip_hdr->ip_sum));
+}
 
 void parse_ethernet_packet(const u_char *packet, struct pcap_pkthdr *hdr)
 {
@@ -28,6 +50,7 @@ void parse_ethernet_packet(const u_char *packet, struct pcap_pkthdr *hdr)
         printf("Ethernet type hex:%x dec:%d is an IP packet\n",
                 ntohs(eptr->ether_type),
                 ntohs(eptr->ether_type));
+        parse_ip_packet(packet);
     }else  if (ntohs (eptr->ether_type) == ETHERTYPE_ARP)
     {
         printf("Ethernet type hex:%x dec:%d is an ARP packet\n",
