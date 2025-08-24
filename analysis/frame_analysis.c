@@ -10,6 +10,10 @@
 struct ip *get_ip_header(struct ether_header *frame)
 {
     u_char *frame_p = (u_char *)frame;
+    if (frame == NULL)
+    {
+        return NULL;
+    }
     if (ntohs(frame->ether_type) == ETHERTYPE_IP)
     {
         return (struct ip *)(frame_p + sizeof(struct ether_header));
@@ -20,6 +24,10 @@ struct ip *get_ip_header(struct ether_header *frame)
 struct tcphdr *get_tcp_header(struct ip *packet)
 {
     u_char *packet_p = (u_char *)packet;
+    if (packet == NULL)
+    {
+        return NULL;
+    }
     if (ntohs(packet->ip_tos) == IPPROTO_TCP)
     {
         return (struct tcphdr *)(packet_p + (packet->ip_hl * 4));
@@ -29,13 +37,17 @@ struct tcphdr *get_tcp_header(struct ip *packet)
 
 u_char *get_tcp_payload(struct tcphdr *segment)
 {
+    if (segment == NULL)
+    {
+        return NULL;
+    }
     u_char *segment_p = (u_char *)segment;
     return segment_p + (segment->th_off * 4);
 }
 
 u_char *find_tcp_payload(u_char *frame, size_t len)
 {
-    u_char *eof, *ip, *tcp, *payload;
+    u_char *eof, *ip, *tcp;
     if (len < MIN_TCP_SEGMENT_LEN)
     {
         return NULL;
