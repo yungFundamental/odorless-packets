@@ -28,7 +28,7 @@ struct tcphdr *get_tcp_header(struct ip *packet)
     {
         return NULL;
     }
-    if (ntohs(packet->ip_tos) == IPPROTO_TCP)
+    if (packet->ip_p == IPPROTO_TCP)
     {
         return (struct tcphdr *)(packet_p + (packet->ip_hl * 4));
     }
