@@ -83,9 +83,8 @@
 //     printf("\n");
 // }
 
-int main(int argc, char **argv)
+int main()
 {
-    int i;
     char *payload;
     char *dev; 
     char errbuf[PCAP_ERRBUF_SIZE];
@@ -148,20 +147,14 @@ int main(int argc, char **argv)
     /* so just pass in the descriptor we got from         */
     /* our call to pcap_open_live and an allocated        */ 
     /* struct pcap_pkthdr                                 */
-    packet = pcap_next(descr,&hdr);
-
-    if(packet == NULL)
+    for (packet = pcap_next(descr,&hdr); packet != NULL; packet = pcap_next(descr,&hdr))
     {
-        printf("Didn't grab packet\n");
-        exit(1);
+        payload = (char *)find_tcp_payload(packet, hdr.len);
+        if (payload)
+            printf("Payload: %s\n", payload);
+        else 
+            printf("No payload found!\n");
     }
-
-    payload = (char *)find_tcp_payload(packet, hdr.len);
-    if (payload)
-        printf("Payload: %s\n", payload);
-    else 
-        printf("No payload found!\n");
-
     pcap_close(descr);
     pcap_freealldevs(all_devices);
     return 0;
