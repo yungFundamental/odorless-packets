@@ -1,5 +1,6 @@
-#include "frame_analysis.h"
+#include "../analysis/frame_analysis.h"
 #include <net/ethernet.h>
+#include <netinet/tcp.h>
 #include <string.h>
 #include <pcap/pcap.h>
 #include <stdio.h>
@@ -23,6 +24,7 @@ int main()
     struct pcap_pkthdr hdr;     /* pcap.h */
     pcap_if_t *all_devices;
     pcap_if_t *dev_i;
+    struct tcphdr *tcp_hdr;
 
 
 
@@ -55,11 +57,16 @@ int main()
 
     for (packet = pcap_next(descr,&hdr); packet != NULL; packet = pcap_next(descr,&hdr))
     {
-        payload = (char *)find_tcp_payload(packet, hdr.len);
-        if (payload)
+        tcp_hdr = find_tcp_segment(packet, hdr.len);
+        // TODO Add timestamp print
+        if (tcp_hdr == NULL)
+        {
+            printf("Not a TCP Segment.\n");
+        }
+        else {
+            payload = (char *)get_tcp_payload(tcp_hdr);
             printf("Payload: %s\n", payload);
-        else 
-            printf("No payload found!\n");
+        }
     }
 
     printf("Closing capture...\n");
