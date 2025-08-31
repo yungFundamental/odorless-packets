@@ -1,4 +1,4 @@
-#include "../analysis/frame_analysis.h"
+#include "frame_analysis.h"
 #include <net/ethernet.h>
 #include <netinet/tcp.h>
 #include <string.h>

