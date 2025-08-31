@@ -16,7 +16,8 @@
 
 int main()
 {
-    char *payload;
+    u_char *payload;
+    u_int payload_len;
     char *dev; 
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t* descr;
@@ -25,6 +26,7 @@ int main()
     pcap_if_t *all_devices;
     pcap_if_t *dev_i;
     struct tcphdr *tcp_hdr;
+    u_int i;
 
 
 
@@ -64,19 +66,30 @@ int main()
             printf("TCP SEGMENT\n");
 
             printf("\tPorts: %d->%d\n", ntohs(tcp_hdr->th_sport), ntohs(tcp_hdr->th_dport));
-            printf("\tSequence Number: %d, Acknowledgement Number: %d\n", tcp_hdr->seq, tcp_hdr->ack_seq);
+            printf("\tSequence Number: %u, Acknowledgement Number: %u\n", ntohl(tcp_hdr->seq), ntohl(tcp_hdr->ack_seq));
             printf("\tFlags: %s%s%s%s%s%s", 
                    (tcp_hdr->syn) ? "SYN " : "",
                    (tcp_hdr->ack) ? "ACK " : "",
                    (tcp_hdr->psh) ? "PSH " : "",
                    (tcp_hdr->urg) ? "URG " : "",
-                   (tcp_hdr->rst) ? "RST " : ""
+                   (tcp_hdr->rst) ? "RST " : "",
                    (tcp_hdr->fin) ? "FIN " : ""
                    );
             printf("\n");
-            payload = (char *)get_tcp_payload(tcp_hdr);
-            if (payload)
-                printf("\tPayload: %s\n", payload);
+            payload = get_tcp_payload(tcp_hdr);
+            payload_len = (packet + hdr.len) - payload;
+            if (payload_len > 0)
+            {
+                printf("\tPayload:\n");
+                printf("\t\tLength: %u\n", payload_len);
+                printf("\t\tHexadecimal:");
+                for (i = 0; i < payload_len; i++)
+                    printf(" %02X", payload[i]);
+
+                printf("\n\t\tASCII: ");
+                for (i = 0; i < payload_len; i++)
+                    printf("%c", payload[i]);
+            }
         }
     }
 
