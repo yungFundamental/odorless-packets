@@ -1,5 +1,6 @@
-#include "frame_analysis.h"
+#include "../analysis/frame_analysis.h"
 #include <net/ethernet.h>
+#include <netinet/tcp.h>
 #include <string.h>
 #include <pcap/pcap.h>
 #include <stdio.h>
@@ -15,7 +16,8 @@
 
 int main()
 {
-    char *payload;
+    u_char *payload;
+    u_int payload_len;
     char *dev; 
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t* descr;
@@ -23,6 +25,8 @@ int main()
     struct pcap_pkthdr hdr;     /* pcap.h */
     pcap_if_t *all_devices;
     pcap_if_t *dev_i;
+    struct tcphdr *tcp_hdr;
+    u_int i;
 
 
 
@@ -55,11 +59,38 @@ int main()
 
     for (packet = pcap_next(descr,&hdr); packet != NULL; packet = pcap_next(descr,&hdr))
     {
-        payload = (char *)find_tcp_payload(packet, hdr.len);
-        if (payload)
-            printf("Payload: %s\n", payload);
-        else 
-            printf("No payload found!\n");
+        tcp_hdr = find_tcp_segment(packet, hdr.len);
+        if (tcp_hdr != NULL)
+        {
+            printf("%ld.%06ld: ", hdr.ts.tv_sec, hdr.ts.tv_usec);
+            printf("TCP SEGMENT\n");
+
+            printf("\tPorts: %d->%d\n", ntohs(tcp_hdr->th_sport), ntohs(tcp_hdr->th_dport));
+            printf("\tSequence Number: %u, Acknowledgement Number: %u\n", ntohl(tcp_hdr->seq), ntohl(tcp_hdr->ack_seq));
+            printf("\tFlags: %s%s%s%s%s%s", 
+                   (tcp_hdr->syn) ? "SYN " : "",
+                   (tcp_hdr->ack) ? "ACK " : "",
+                   (tcp_hdr->psh) ? "PSH " : "",
+                   (tcp_hdr->urg) ? "URG " : "",
+                   (tcp_hdr->rst) ? "RST " : "",
+                   (tcp_hdr->fin) ? "FIN " : ""
+                   );
+            printf("\n");
+            payload = get_tcp_payload(tcp_hdr);
+            payload_len = (packet + hdr.len) - payload;
+            if (payload_len > 0)
+            {
+                printf("\tPayload:\n");
+                printf("\t\tLength: %u\n", payload_len);
+                printf("\t\tHexadecimal:");
+                for (i = 0; i < payload_len; i++)
+                    printf(" %02X", payload[i]);
+
+                printf("\n\t\tASCII: ");
+                for (i = 0; i < payload_len; i++)
+                    printf("%c", payload[i]);
+            }
+        }
     }
 
     printf("Closing capture...\n");
