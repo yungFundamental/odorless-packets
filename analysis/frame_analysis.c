@@ -42,8 +42,8 @@ u_char *get_tcp_payload(struct tcphdr *segment)
     {
         return NULL;
     }
-    u_char *segment_p = (u_char *)segment;
-    return segment_p + (segment->th_off * 4);
+    return (u_char *)segment + (segment->th_off * 4);
+
 }
 
 struct tcphdr *find_tcp_segment(u_char *frame, size_t len)
