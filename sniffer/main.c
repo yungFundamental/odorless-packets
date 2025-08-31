@@ -58,21 +58,20 @@ int main()
     for (packet = pcap_next(descr,&hdr); packet != NULL; packet = pcap_next(descr,&hdr))
     {
         tcp_hdr = find_tcp_segment(packet, hdr.len);
-        printf("%ld.%06ld: ", hdr.ts.tv_sec, hdr.ts.tv_usec);
-        if (tcp_hdr == NULL)
+        if (tcp_hdr != NULL)
         {
-            printf("Not a TCP Segment.\n");
-        }
-        else {
+            printf("%ld.%06ld: ", hdr.ts.tv_sec, hdr.ts.tv_usec);
             printf("TCP SEGMENT\n");
+
             printf("\tPorts: %d->%d\n", ntohs(tcp_hdr->th_sport), ntohs(tcp_hdr->th_dport));
             printf("\tSequence Number: %d, Acknowledgement Number: %d\n", tcp_hdr->seq, tcp_hdr->ack_seq);
-            printf("\tFlags: %s%s%s%s%s", 
+            printf("\tFlags: %s%s%s%s%s%s", 
                    (tcp_hdr->syn) ? "SYN " : "",
                    (tcp_hdr->ack) ? "ACK " : "",
                    (tcp_hdr->psh) ? "PSH " : "",
                    (tcp_hdr->urg) ? "URG " : "",
                    (tcp_hdr->rst) ? "RST " : ""
+                   (tcp_hdr->fin) ? "FIN " : ""
                    );
             printf("\n");
             payload = (char *)get_tcp_payload(tcp_hdr);
