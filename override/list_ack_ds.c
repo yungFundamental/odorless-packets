@@ -66,7 +66,25 @@ u_char is_ack_kept(ack_ds head, unsigned int src_port, unsigned int dst_port, un
 /*
 * Add ack to the data structure. Return 1 if successfully added, 0 if not.
 */
-u_char add_ack(ack_ds *, unsigned int src_port, unsigned int dst_port, unsigned int ack_seq);
+u_char add_ack(ack_ds *head, unsigned int src_port, unsigned int dst_port, unsigned int ack_seq)
+{
+    ack_node *new_node = (ack_node *)malloc(sizeof(ack_node));
+    if (!new_node)
+        return 0;
+
+    new_node->ack.ack_seq = ack_seq;
+    new_node->ack.dport = dst_port;
+    new_node->ack.sport = src_port;
+    if (head == NULL || *head == NULL)
+    {
+        new_node->next = NULL;
+        *head = new_node;
+        return 1;
+    }
+    new_node->next = (*head)->next;
+    (*head)->next = new_node;
+    return 1;
+}
 
 u_char remove_ack(ack_ds *head, unsigned int src_port, unsigned int dst_port, unsigned int ack_seq)
 {
