@@ -28,10 +28,16 @@ ack_node *get_node_before(ack_ds head, tcp_ack ack)
     return NULL;
 }
 
-void destroy_ack_node(ack_node *an)
+void destroy_next_ack_node(ack_node *an)
 {
-    free(an);
+    ack_node *new_next; 
+    if (an->next == NULL)
+        return;
+    new_next = an->next->next;
+    free(an->next);
+    an->next = new_next;
 }
+
 ack_ds create_ack_ds()
 {
     return NULL;
