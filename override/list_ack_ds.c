@@ -68,8 +68,22 @@ u_char is_ack_kept(ack_ds head, unsigned int src_port, unsigned int dst_port, un
 */
 u_char add_ack(ack_ds *, unsigned int src_port, unsigned int dst_port, unsigned int ack_seq);
 
-u_char remove_ack(ack_ds *, unsigned int src_port, unsigned int dst_port, unsigned int ack_seq)
+u_char remove_ack(ack_ds *head, unsigned int src_port, unsigned int dst_port, unsigned int ack_seq)
 {
-    ack_node *i;
+    ack_node *prev;
+    tcp_ack ack = {src_port, dst_port, ack_seq};
+    if (head == NULL || *head == NULL)
+        return 0;
+    if (ack_cmp((*head)->ack, ack))
+    {
+        prev = *head;
+        *head = prev->next;
+        free(prev);
+        return 1;
+    }
+    prev = get_node_before(*head, ack);
+    if (prev == NULL)
+        return 0;
+    destroy_next_ack_node(prev);
     return 1;
 }
