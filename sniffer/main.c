@@ -14,7 +14,7 @@
 #include <netinet/if_ether.h> /* includes net/ethernet.h */
 
 
-int main()
+int main(int argc, char *argv[])
 {
     u_char *payload;
     u_int payload_len;
@@ -27,26 +27,37 @@ int main()
     pcap_if_t *dev_i;
     struct tcphdr *tcp_hdr;
     u_int i;
+    const char *dev_name;
+    const char default_device[] = "lo";
+
+    if (argc < 2)
+    {
+        printf("No device given, defaulting to \"%s\"...\n", default_device);
+        dev_name = default_device;
+    }
+    else
+        dev_name = argv[1];
 
 
-
-    if(pcap_findalldevs(&all_devices, errbuf))
+    if (pcap_findalldevs(&all_devices, errbuf))
     {
         printf("%s\n",errbuf);
         exit(1);
     }
 
+    printf("Looking for device \"%s\"...\n\n", dev_name);
     // Find loopback
-    for (dev_i = all_devices; dev_i && strcmp(dev_i->name, "lo"); dev_i = dev_i->next);
+    for (dev_i = all_devices; dev_i && strcmp(dev_i->name, dev_name); dev_i = dev_i->next);
     if (!dev_i)
     {
-      fprintf(stderr, "Loopback device not found!\n");
+      fprintf(stderr, "Device not found!\n");
       exit(1);
     }
     dev = dev_i->name;
 
-    printf("DEV: %s\n",dev);
-    printf("Description: %s\n", dev_i->description);
+    printf("FOUND DEVICE:\n\tDEV=%s\n",dev);
+    printf("\tDescription=%s\n", dev_i->description);
+    printf("Starting to sniff...\n\n");
 
     descr = pcap_open_live(dev,BUFSIZ, 0, 2000, errbuf);
 
