@@ -1,3 +1,0 @@
-[submodule "tcpdump"]
-	path = tcpdump
-	url = git@github.com:the-tcpdump-group/tcpdump.git
