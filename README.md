@@ -23,5 +23,7 @@ In short, we can make a compiled program use our version of standard library fun
 Personally, I was familiar of this "trick" for observabillity purposes, for example wrapping the `malloc` function to add metrics and logs to each call. 
 Theoretically, the `LD_PRELOAD` variable can act as a strategy to cause unexpected behavior for less experienced Linux users. That is why I wanted to put the idea to practice. 
 
+I chose to override the `libpcap` library, since it is the same library used by common tools like `tcpdump` and `npcap`.
+
 For more information about the `LD_PRELOAD` trick - see this [Baeldung article](https://www.baeldung.com/linux/ld_preload-trick-what-is).
 
