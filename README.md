@@ -5,6 +5,10 @@ This project dives into network captures, and how to override them.
 
 The name "Odorless Packets" comes from the "network sniffing" term - This project makes packets that can't be "sniffed".
 
+## Demonstration
+
+![Demo](assets/demo/demo.gif)
+
 ## System Requirements
 It is important to note that this project was developed on Ubuntu 24.04, and is meant for Linux systems.
 
