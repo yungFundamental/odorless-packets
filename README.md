@@ -7,7 +7,11 @@ The name "Odorless Packets" comes from the "network sniffing" term - This projec
 
 ## Demonstration
 
+The following video demonstrates how to override the sniffing process to hide certain packets:
+
 ![Demo](assets/demo/demo.gif)
+
+The top left terminal contains a process of the sniffer program. The top right runs the same program but with the `LD_PRELOAD` environment variable set to our specific `override` code.
 
 ## System Requirements
 It is important to note that this project was developed on Ubuntu 24.04, and is meant for Linux systems.
