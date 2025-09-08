@@ -9,9 +9,14 @@ The name "Odorless Packets" comes from the "network sniffing" term - This projec
 
 The following video demonstrates how to override the sniffing process to hide certain packets:
 
-![Demo](assets/demo/demo.gif)
+![Demo](assets/demo/demo-2.gif)
 
-The top left terminal contains a process of the sniffer program. The top right runs the same program but with the `LD_PRELOAD` environment variable set to our specific `override` code.
+The top left terminal contains a process of the sniffer program. The bottom left terminal runs the same program but with the `LD_PRELOAD` environment variable set to our specific `override` code.
+On the right we have a connected TCP session.
+
+As we can see in the demo, every packet that reaches the sniffer in the top left reaches the sniffer in the bottom left as well. The only exception is the message with the "DON'T LOOK" prefix and its acknowledgement.
+
+Thus demonstrating how we can hide packets from a network capture tool **without changing the binary**.
 
 ## System Requirements
 It is important to note that this project was developed on Ubuntu 24.04, and is meant for Linux systems.
