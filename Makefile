@@ -43,9 +43,11 @@ $(BUILD_DIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 sniff: $(SNIFFER_BIN)
+	@echo "Running sniffer on default interface (without LD_PRELOAD):"
 	sudo $(SNIFFER_BIN)
 
 fake-sniff: $(SNIFFER_BIN) $(OVERRIDE_SO)
+	@echo "Running sniffer on default interface (with LD_PRELOAD):"
 	sudo LD_PRELOAD=$(OVERRIDE_SO) $(SNIFFER_BIN)
 
 clean:
