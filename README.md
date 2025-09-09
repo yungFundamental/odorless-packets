@@ -22,7 +22,7 @@ Thus demonstrating how we can hide packets from a network capture tool **without
 It is important to note that this project was developed on Ubuntu 24.04, and is meant for Linux systems.
 
 
-## Contents
+## Project Contents
 ### Network Sniffer
 In order to play around with the concept, I built a basic TCP sniffer. 
 
@@ -39,4 +39,19 @@ Theoretically, the `LD_PRELOAD` variable can act as a strategy to cause unexpect
 I chose to override the `libpcap` library, since it is the same library used by common tools like `tcpdump` and `npcap`.
 
 For more information about the `LD_PRELOAD` trick - see this [Baeldung article](https://www.baeldung.com/linux/ld_preload-trick-what-is).
+
+#### Hiding Acknowledgements
+In order to hide the acknowledgements, I had to keep track which messages I hid so when I got to the ack of those messages I'd hide them.
+
+I considered multiple datastructures to solve this problem. HashMap the theoretically the "optimal" choice - $O(1)$ lookup/delete/insertion time is tough to deny.
+But looking closer into the decision, there is more to be considered than just time complexity:
+- Implementation complexity - Time complexity isn't the most important part of this educational project. Perhaps HashMaps are optimal but should they be implemented in the MVP?
+- Space complexity
+- Collision management
+
+All in all, I realised that the more fitting implementation may be starting with a simple linked list, but writing the code in a way so that switching datastructures would be very simple.
+I wrote the [ack_ds.h](override/ack_ds.h) with inspiration from the Interface type in OOP (this whole implementation is taken from [DIP](https://www.baeldung.com/cs/dip)).
+The overriding code will reference only the functions written in the `ack_ds.h` file and only use the `ack_ds` type. The `ack_ds` typedef will point to us which implementation to use.
+
+The linked list does a good job supporting our use-case, since we haven't reached the scale where the amount of acks to hide at a single point of time is above 2.
 
